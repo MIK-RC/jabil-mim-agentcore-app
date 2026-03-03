@@ -117,7 +117,9 @@ class BaseAgent(ABC):
         )
 
         # Initialize Bedrock model
-        effective_region = region or self._settings.get("aws", {}).get("region", "us-east-1")
+        effective_region = region or self._settings.get("aws", {}).get(
+            "region", "us-east-1"
+        )
         effective_model_id = model_id or self._config.model_id
 
         self._model = BedrockModel(
@@ -128,7 +130,9 @@ class BaseAgent(ABC):
         # Initialize the Strands agent
         self._agent = self._create_agent(session_manager)
 
-        self._logger.info(f"Initialized {self._config.name} with model {effective_model_id}")
+        self._logger.info(
+            f"Initialized {self._config.name} with model {effective_model_id}"
+        )
 
     def _create_agent(self, session_manager: Any | None = None) -> Agent:
         """

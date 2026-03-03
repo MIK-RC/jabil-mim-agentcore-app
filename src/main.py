@@ -54,78 +54,19 @@ def invoke(payload: dict) -> dict:
     - "swarm": Run a single task through the Swarm
 
     Payload Examples:
-        {"mode": "proactive"}
         {"mode": "chat", "message": "Why is payment-service failing?"}
-        {"mode": "chat", "session_id": "abc-123", "message": "Create a ticket"}
-        {"mode": "swarm", "task": "Analyze auth-service errors"}
 
     Returns:
         Workflow result dictionary.
     """
     logger.info(f"AgentCore invoked: {json.dumps(payload)[:200]}...")
 
-    mode = payload.get("mode", "proactive")
-
     try:
-        if mode == "proactive":
-            return handle_proactive(payload)
-        elif mode == "chat":
-            return handle_chat(payload)
-        elif mode == "swarm":
-            return handle_swarm(payload)
-        else:
-            return {
-                "success": False,
-                "error": f"Unknown mode: {mode}",
-                "supported_modes": ["proactive", "chat", "swarm"],
-            }
+        return handle_chat(payload)
 
     except Exception as e:
         logger.error(f"Invocation failed: {e}")
-        return {
-            "success": False,
-            "error": str(e),
-            "mode": mode,
-        }
-
-
-def handle_proactive(payload: dict) -> dict:
-    """Handle proactive workflow mode - starts in background, returns immediately."""
-
-    task_id = app.add_async_task("proactive_workflow")
-    logger.info(f"Starting proactive workflow in background (task_id: {task_id})")
-    sys.stdout.flush()  # Ensure log is written to CloudWatch
-
-    def run_in_background():
-        try:
-            logger.info("=== PROACTIVE WORKFLOW STARTED ===")
-            sys.stdout.flush()
-
-            result = run_proactive_workflow(destination_sink=payload.get("destination_sink", "s3"))
-
-            logger.info("=== PROACTIVE WORKFLOW COMPLETED ===")
-            logger.info(f"Workflow result: {json.dumps(result, default=str)[:1000]}")
-            sys.stdout.flush()
-
-        except Exception as e:
-            logger.error("=== PROACTIVE WORKFLOW FAILED ===")
-            logger.error(f"Error: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            sys.stdout.flush()
-
-        finally:
-            app.complete_async_task(task_id)
-            sys.stdout.flush()
-
-    thread = threading.Thread(target=run_in_background, daemon=True)
-    thread.start()
-
-    return {
-        "success": True,
-        "status": "started",
-        "task_id": task_id,
-        "message": "Proactive workflow started in background",
-    }
+        return {"success": False, "error": str(e)}
 
 
 def handle_chat(payload: dict) -> dict:
@@ -137,33 +78,14 @@ def handle_chat(payload: dict) -> dict:
     history is persisted via the AgentCore Memory service.
     """
     message = payload.get("message", "")
-    session_id = payload.get("session_id")  # Single ID for both session and actor
 
     if not message:
         return {"success": False, "error": "Missing 'message' in payload"}
 
-    # Use session_id for BOTH session_id and actor_id (Option B from docs)
-    # This ensures consistent memory lookup across invocations
-    # The client MUST provide session_id for memory to persist
-    if not session_id:
-        session_id = str(uuid.uuid4())
-        logger.warning(
-            f"No session_id provided - generated new one: {session_id}. "
-            f"Memory will NOT persist unless client sends this session_id in future requests!"
-        )
-    else:
-        logger.info(f"Using provided session_id: {session_id}")
-
-    # Use same ID for both session and actor (per AWS docs best practice)
-    actor_id = session_id
-    logger.info(f"Memory lookup key: session_id={session_id}, actor_id={actor_id}")
-
     # Create orchestrator with session and memory enabled
     # Memory persistence is handled via AgentCore Memory service when deployed
     orchestrator = OrchestratorAgent(
-        session_id=session_id,
-        enable_memory=True,
-        actor_id=actor_id,
+        enable_memory=False,
     )
 
     # Invoke the orchestrator with the user message

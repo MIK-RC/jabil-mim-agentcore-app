@@ -122,7 +122,9 @@ def setup_logging(
     # Resolve settings (args override config)
     effective_level = level or logging_config.get("level", "INFO")
     effective_json = (
-        json_format if json_format is not None else logging_config.get("json_format", False)
+        json_format
+        if json_format is not None
+        else logging_config.get("json_format", False)
     )
     effective_format = log_format or logging_config.get(
         "format", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

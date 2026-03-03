@@ -7,42 +7,11 @@ aws:
   # Bedrock endpoint (optional, uses default if not specified)
   bedrock_endpoint: null
 
-session:
-  # Memory backend: "agentcore", "s3", "file", or "auto"
-  # - "agentcore": Use AgentCore Memory service (recommended for production)
-  # - "s3": Use S3 for session storage
-  # - "file": Use local file storage (for development only)
-  # - "auto": Auto-detect (use AgentCore if running in AgentCore, else file)
-  backend: "agentcore"
-
-  # AgentCore Memory ID (can also be set via AGENTCORE_MEMORY_ID env var)
-  # This is required when backend is "agentcore"
-  memory_id: "aiopsagentcoreapp_mem-c1kjyYCCSX"
-
-  # Local storage directory for file-based sessions (development only)
-  local_storage_dir: "./sessions"
-
-  # Session TTL in seconds (7 days = 604800)
-  ttl_seconds: 604800
-
-  # Maximum conversation history to retain per session
-  max_history_length: 50
-
 logging:
   level: "INFO"
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
   # Enable JSON logging for production (easier to parse in CloudWatch)
   json_format: true
-
-# Workflow settings
-workflow:
-  # Time range for log queries (supports DataDog time syntax)
-  default_time_from: "now-1d"
-  default_time_to: "now"
-  # Maximum parallel workers for service processing
-  max_workers: 50
-  # Use lightweight processor (Option A) instead of full orchestrator (Option B)
-  use_lightweight_processor: false
 
 # Rate limiting and safety
 rate_limits:
@@ -50,14 +19,3 @@ rate_limits:
   max_handoffs: 15
   execution_timeout_seconds: 900
   node_timeout_seconds: 300
-
-# Feature flags
-features:
-  enable_ticket_creation: true
-  enable_notifications: false
-  dry_run_mode: false
-
-msteams:
-  webhook_url: "https://defaultd508624fa0b74fd3951105b18ca027.84.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/ddec1d71e22f48b19e00b9077fc07023/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9u4Z__-_oag8q_YYuwO3bmdiftx2l0Sx-8DkRSLWoI8"
-
-  timeout_seconds: 10

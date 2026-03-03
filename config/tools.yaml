@@ -3,47 +3,6 @@
 # ============================================
 
 # ============================================
-# DataDog Tool Configuration
-# ============================================
-datadog:
-  # DataDog site (us1, us3, us5, eu1, ap1, etc.)
-  site: "us5"
-
-  # API endpoints
-  endpoints:
-    logs_search: "/api/v2/logs/events/search"
-
-  # Query defaults
-  query:
-    # Default query for error/warning logs
-    default_query: "status:(error OR warn)"
-    # Maximum logs to fetch per query
-    limit: 50
-    # Default time range
-    default_time_from: "now-1d"
-    default_time_to: "now"
-
-  # Request settings
-  request:
-    timeout_seconds: 30
-    retry_attempts: 3
-    retry_delay_seconds: 1
-
-  # Log formatting
-  formatting:
-    # Fields to extract from logs
-    fields:
-      - timestamp
-      - status
-      - service
-      - message
-      - host
-    # Maximum message length for LLM context
-    max_message_length: 500
-    # Maximum total logs to include in context
-    max_logs_for_context: 30
-
-# ============================================
 # ServiceNow Tool Configuration
 # ============================================
 servicenow:
@@ -97,39 +56,3 @@ servicenow:
   request:
     timeout_seconds: 30
     retry_attempts: 3
-
-# ============================================
-# Code Analysis Tool Configuration
-# ============================================
-code_analysis:
-  # Analysis parameters
-  analysis:
-    # Maximum context length for analysis
-    max_context_chars: 10000
-    # Severity thresholds
-    severity_keywords:
-      critical:
-        - "OutOfMemoryError"
-        - "StackOverflowError"
-        - "FATAL"
-        - "crash"
-        - "unrecoverable"
-      high:
-        - "NullPointerException"
-        - "ConnectionRefused"
-        - "TimeoutException"
-        - "AuthenticationError"
-      medium:
-        - "Warning"
-        - "Deprecated"
-        - "RetryableError"
-      low:
-        - "Info"
-        - "Debug"
-
-  # Output settings
-  output:
-    # Include code snippets in suggestions
-    include_code_snippets: true
-    # Maximum suggestion length
-    max_suggestion_length: 2000
