@@ -85,7 +85,7 @@ class AgentLoggerAdapter(logging.LoggerAdapter):
         logger.info("Processing request", extra={"user_id": "user-456"})
     """
 
-    def process(self, msg: str, kwargs: dict) -> tuple[str, dict]:
+    def process(self, msg: str, kwargs: dict) -> tuple[str, dict]:  # type: ignore (Read the docstring for this function)
         # Merge extra context
         extra = kwargs.get("extra", {})
         extra.update(self.extra)
