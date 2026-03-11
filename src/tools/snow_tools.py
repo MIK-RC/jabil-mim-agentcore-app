@@ -78,6 +78,7 @@ class ServiceNowClient:
         assignment_group: str | None = None,
         extra: dict | None = None,
     ) -> dict:
+        print(f"Creating incident with short_description='{short_description}', priority='{priority}', category='{category}'")
 
         if not self.get_base_url:
             logger.error("ServiceNow instance not configured")
@@ -104,15 +105,19 @@ class ServiceNowClient:
             payload.update(extra)
 
         logger.info(f"Creating ServiceNow incident: {short_description[:60]}...")
-
+        print("HEREEEE")
+        print(f"Payload: {payload}")
+        print(f"URL: {url}")
+        print(f"Auth: {self.prepare_auth}")
         try:
             response = requests.post(
                 url,
-                auth=self.prepare_auth(),
-                headers=self.prepare_headers(),
+                auth=self.prepare_auth,
+                headers=self.prepare_headers,
                 json=payload,
                 timeout=self._timeout,
             )
+            print(response)
             response.raise_for_status()
 
             result = response.json().get("result", {})
@@ -136,20 +141,20 @@ class ServiceNowClient:
         sys_id: str,
         updates: dict,
     ) -> dict:
-        if not self.get_base_url():
+        if not self.get_base_url:
             logger.error("ServiceNow instance not configured")
             return {"error": "ServiceNow instance not configured"}
 
         endpoint = self._config.get("endpoints", {}).get("incidents", "/api/now/table/incident")
-        url = f"{self.get_base_url()}{endpoint}/{sys_id}"
+        url = f"{self.get_base_url}{endpoint}/{sys_id}"
 
         logger.info(f"Updating incident: {sys_id}")
 
         try:
             response = requests.patch(
                 url,
-                auth=self.prepare_auth(),
-                headers=self.prepare_headers(),
+                auth=self.prepare_auth,
+                headers=self.prepare_headers,
                 json=updates,
                 timeout=self._timeout,
             )
@@ -166,18 +171,18 @@ class ServiceNowClient:
 
     def get_incident(self, sys_id: str) -> dict:
 
-        if not self.get_base_url():
+        if not self.get_base_url:
             logger.error("ServiceNow instance not configured")
             return {"error": "ServiceNow instance not configured"}
 
         endpoint = self._config.get("endpoints", {}).get("incidents", "/api/now/table/incident")
-        url = f"{self.get_base_url()}{endpoint}/{sys_id}"
+        url = f"{self.get_base_url}{endpoint}/{sys_id}"
 
         try:
             response = requests.get(
                 url,
-                auth=self.prepare_auth(),
-                headers=self.prepare_headers(),
+                auth=self.prepare_auth,
+                headers=self.prepare_headers,
                 timeout=self._timeout,
             )
             response.raise_for_status()
@@ -197,14 +202,14 @@ class ServiceNowClient:
         raw_query: str | None = None,
     ) -> list[dict]:
 
-        if not self.get_base_url():
+        if not self.get_base_url:
             logger.error("ServiceNow instance not configured")
             return [{"error": "ServiceNow instance not configured"}]
 
         search_cfg = self._config.get("search", {})
         endpoint = self._config.get("endpoints", {}).get("incidents", "/api/now/table/incident")
 
-        url = f"{self.get_base_url()}{endpoint}"
+        url = f"{self.get_base_url}{endpoint}"
 
         limit = limit or search_cfg.get("default_limit", 5)
         order = search_cfg.get("default_order", "ORDERBYDESCsys_updated_on")
@@ -246,8 +251,8 @@ class ServiceNowClient:
         try:
             response = requests.get(
                 url,
-                auth=self.prepare_auth(),
-                headers=self.prepare_headers(),
+                auth=self.prepare_auth,
+                headers=self.prepare_headers,
                 params=params,
                 timeout=self._timeout,
             )
@@ -290,20 +295,21 @@ class ServiceNowClient:
         self,
         sys_id: str,
     ) -> dict:
-        if not self.get_base_url():
+        if not self.get_base_url:
             logger.error("ServiceNow instance not configured")
             return {"error": "ServiceNow instance not configured"}
 
         endpoint = self._config.get("endpoints", {}).get("incidents", "/api/now/table/incident")
-        url = f"{self.get_base_url()}{endpoint}/{sys_id}"
+        url = f"{self.get_base_url}{endpoint}/{sys_id}"
+        print(url)
 
         logger.info(f"Deleting ServiceNow incident: {sys_id}")
-
+        print("EHOJSDKASNFAUI")
         try:
             response = requests.delete(
                 url,
-                auth=self.prepare_auth(),
-                headers=self.prepare_headers(),
+                auth=self.prepare_auth,
+                headers=self.prepare_headers,
                 timeout=self._timeout,
             )
             response.raise_for_status()
