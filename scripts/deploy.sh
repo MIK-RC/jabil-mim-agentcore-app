@@ -1,7 +1,6 @@
 #!/bin/bash
 # Deploy to AWS Bedrock AgentCore
 # Reads credentials from .env file
-
 set -e
 cd "$(dirname "$0")/.."
 

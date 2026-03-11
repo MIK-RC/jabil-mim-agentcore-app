@@ -5,6 +5,7 @@ Provides the BaseAgent class that all specialized agents inherit from.
 Contains shared functionality for initialization, logging, and action tracking.
 """
 
+import logging
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -15,8 +16,30 @@ from pydantic import BaseModel, Field
 from strands import Agent
 from strands.models.bedrock import BedrockModel
 
-from ..utils.config_loader import AgentConfig, get_agent_config, load_settings
-from ..utils.logging_config import get_logger
+from utils.config_loader import AgentConfig, get_agent_config, load_settings
+
+
+def get_logger(name: str, agent_id: str = "") -> logging.Logger:
+    """
+    Get or create a logger with the specified name.
+    
+    Args:
+        name: Logger name (e.g., 'agents.servicenow')
+        agent_id: Optional agent ID to include in log messages
+        
+    Returns:
+        Configured logger instance
+    """
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            f'%(asctime)s - %(name)s - {agent_id} - %(levelname)s - %(message)s'
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+    return logger
 
 
 def _utc_now_iso() -> str:
