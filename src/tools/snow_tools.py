@@ -78,7 +78,6 @@ class ServiceNowClient:
         assignment_group: str | None = None,
         extra: dict | None = None,
     ) -> dict:
-        print(f"Creating incident with short_description='{short_description}', priority='{priority}', category='{category}'")
 
         if not self.get_base_url:
             logger.error("ServiceNow instance not configured")
@@ -104,11 +103,6 @@ class ServiceNowClient:
         if extra:
             payload.update(extra)
 
-        logger.info(f"Creating ServiceNow incident: {short_description[:60]}...")
-        print("HEREEEE")
-        print(f"Payload: {payload}")
-        print(f"URL: {url}")
-        print(f"Auth: {self.prepare_auth}")
         try:
             response = requests.post(
                 url,
@@ -301,10 +295,6 @@ class ServiceNowClient:
 
         endpoint = self._config.get("endpoints", {}).get("incidents", "/api/now/table/incident")
         url = f"{self.get_base_url}{endpoint}/{sys_id}"
-        print(url)
-
-        logger.info(f"Deleting ServiceNow incident: {sys_id}")
-        print("EHOJSDKASNFAUI")
         try:
             response = requests.delete(
                 url,
