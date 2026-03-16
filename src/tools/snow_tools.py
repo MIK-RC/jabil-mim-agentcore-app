@@ -3,7 +3,6 @@ import os
 import requests
 from strands import tool
 
-from utils.config_loader import load_tools_config
 from utils.logging_config import get_logger
 
 logger = get_logger("snow_tools")
@@ -14,7 +13,7 @@ class ServiceNowClient:
 
     def __init__(self, instance: str | None = None, username: str | None = None, password: str | None = None):
 
-        self._config = load_tools_config().get("servicenow", {})
+        self._config = {}
 
         self._instance = instance or os.environ.get("SERVICENOW_INSTANCE")
         self._username = username or os.environ.get("SERVICENOW_USER", "")
