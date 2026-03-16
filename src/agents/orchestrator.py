@@ -1,6 +1,7 @@
 from utils.logging_config import get_logger
 from .base import BaseAgent
 from .snow_agent import ServiceNowAgent
+from tools.snow_tools import create_incident, search_incidents, delete_incident
 logger = get_logger(__name__)
 
 class OrchestratorAgent(BaseAgent):
@@ -16,7 +17,6 @@ class OrchestratorAgent(BaseAgent):
             )
 
         def get_tools(self) -> list:
-            from tools.snow_tools import create_incident, search_incidents, delete_incident
             return [create_incident, search_incidents, delete_incident]
         
         @property
