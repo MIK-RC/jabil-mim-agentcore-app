@@ -61,12 +61,9 @@ def load_settings() -> dict[str, Any]:
     """Load all settings from the configuration files."""
     return {
         "agents": _load_yaml("agents.yaml"),
-        "tools": _load_yaml("tools.yaml"),
-        "models": _load_yaml("models.yaml"),
+        "models": _load_yaml("models.yaml")
     }
 
-def load_tools_config() -> dict[str, Any]:
-    return _load_yaml("tools.yaml")
 class AgentConfig(BaseModel):
     """Configuration for a single agent."""
 
