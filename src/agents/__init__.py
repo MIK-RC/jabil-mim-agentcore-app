@@ -7,7 +7,9 @@ Each agent can be used standalone or as part of the orchestrated swarm.
 
 from .base import BaseAgent
 from .snow_agent import ServiceNowAgent
+from .orchestrator import OrchestratorAgent
 
 __all__ = [
     "BaseAgent",
-    "ServiceNowAgent"]
+    "ServiceNowAgent",
+    "OrchestratorAgent",]
