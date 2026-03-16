@@ -29,14 +29,7 @@ app = BedrockAgentCoreApp(
         )
     ]
 )
-# model_id = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
-# model = BedrockModel(model_id=model_id)
-# snow_agent = ServiceNowAgent()
-# agent = Agent(
-#     model=model, 
-#     tools=snow_agent.get_tools(),
-#     system_prompt="Act as an IT support agent using the provided tools to manage ServiceNow incidents. Use the tools to create, update, check status, search, and delete incidents as needed to assist users with their IT issues. Always provide clear and concise responses based on the tool outputs."
-# )
+
 
 @app.ping
 def health() -> dict:
