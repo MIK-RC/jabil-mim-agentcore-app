@@ -4,7 +4,6 @@ from typing import Any
 
 import yaml
 from dotenv import load_dotenv
-from pydantic import BaseModel
 
 load_dotenv()
 
@@ -55,6 +54,14 @@ def _load_yaml(filename: str) -> dict:
     
 def get_agent_config(agent_type: str) -> dict:
     """Get the configuration for a specific agent type."""
+    filepath = _get_config_dir() / "agents.yaml"
+    
+    if not filepath.exists():
+        raise FileNotFoundError(
+            f"agents.yaml not found at {filepath}. "
+            "This file is required for agent initialization."
+        )
+    
     return _load_yaml("agents.yaml").get(agent_type, {})
 
 def load_settings() -> dict[str, Any]:
@@ -63,12 +70,3 @@ def load_settings() -> dict[str, Any]:
         "agents": _load_yaml("agents.yaml"),
         "models": _load_yaml("models.yaml")
     }
-
-class AgentConfig(BaseModel):
-    """Configuration for a single agent."""
-
-    name: str
-    description: str = ""
-    model_id: str = "us.anthropic.claude-sonnet-4-20250514-v1:0"
-    max_tokens: int = 4096
-    system_prompt: str = ""
