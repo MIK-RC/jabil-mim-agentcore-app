@@ -5,7 +5,7 @@ Custom tools for the AIOps Multi-Agent System.
 Each tool is implemented using the @tool decorator from Strands Agents SDK.
 """
 
-from .servicenow_tools import (
+from .snow_tools import (
     ServiceNowClient,
     create_incident,
     get_incident_status,

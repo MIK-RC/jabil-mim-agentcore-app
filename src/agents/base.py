@@ -5,6 +5,7 @@ Provides the BaseAgent class that all specialized agents inherit from.
 Contains shared functionality for initialization, logging, and action tracking.
 """
 
+import logging
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -15,8 +16,30 @@ from pydantic import BaseModel, Field
 from strands import Agent
 from strands.models.bedrock import BedrockModel
 
-from ..utils.config_loader import AgentConfig, get_agent_config, load_settings
-from ..utils.logging_config import get_logger
+from utils.config_loader import get_agent_config, load_settings
+
+
+def get_logger(name: str, agent_id: str = "") -> logging.Logger:
+    """
+    Get or create a logger with the specified name.
+    
+    Args:
+        name: Logger name (e.g., 'agents.servicenow')
+        agent_id: Optional agent ID to include in log messages
+        
+    Returns:
+        Configured logger instance
+    """
+    logger = logging.getLogger(name)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            f'%(asctime)s - %(name)s - {agent_id} - %(levelname)s - %(message)s'
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+    return logger
 
 
 def _utc_now_iso() -> str:
@@ -76,7 +99,7 @@ class BaseAgent(ABC):
     def __init__(
         self,
         agent_type: str,
-        custom_config: AgentConfig | None = None,
+        custom_config: dict | None = None,
         model_id: str | None = None,
         region: str | None = None,
         session_manager: Any | None = None,
@@ -87,7 +110,7 @@ class BaseAgent(ABC):
         Args:
             agent_type: Type of agent (e.g., "orchestrator", "datadog").
                        Used to load configuration from agents.yaml.
-            custom_config: Optional custom AgentConfig to override YAML config.
+            custom_config: Optional custom config dict to override YAML config.
             model_id: Optional model ID to override config.
             region: Optional AWS region to override config.
             session_manager: Optional session manager for conversation persistence.
@@ -101,8 +124,7 @@ class BaseAgent(ABC):
         if custom_config:
             self._config = custom_config
         else:
-            agent_cfg = get_agent_config(agent_type)
-            self._config = AgentConfig(**agent_cfg)
+            self._config = get_agent_config(agent_type)
 
         # Initialize logger
         self._logger = get_logger(
@@ -113,14 +135,14 @@ class BaseAgent(ABC):
         # Initialize state
         self._state = AgentState(
             agent_id=self._agent_id,
-            agent_name=self._config.name,
+            agent_name=self._config.get("name", agent_type),
         )
 
         # Initialize Bedrock model
         effective_region = region or self._settings.get("aws", {}).get(
             "region", "us-east-1"
         )
-        effective_model_id = model_id or self._config.model_id
+        effective_model_id = model_id or self._config.get("model_id", "us.anthropic.claude-sonnet-4-20250514-v1:0")
 
         self._model = BedrockModel(
             model_id=effective_model_id,
@@ -131,7 +153,7 @@ class BaseAgent(ABC):
         self._agent = self._create_agent(session_manager)
 
         self._logger.info(
-            f"Initialized {self._config.name} with model {effective_model_id}"
+            f"Initialized {self._config.get('name', agent_type)} with model {effective_model_id}"
         )
 
     def _create_agent(self, session_manager: Any | None = None) -> Agent:
@@ -146,10 +168,10 @@ class BaseAgent(ABC):
         """
         agent_kwargs = {
             "model": self._model,
-            "system_prompt": self._config.system_prompt,
+            "system_prompt": self._config.get("system_prompt", ""),
             "tools": self.get_tools(),
-            "name": self._config.name,
-            "description": self._config.description,
+            "name": self._config.get("name", self._agent_type),
+            "description": self._config.get("description", ""),
         }
 
         if session_manager:
@@ -165,12 +187,12 @@ class BaseAgent(ABC):
     @property
     def agent_name(self) -> str:
         """Get the agent name from config."""
-        return self._config.name
+        return self._config.get("name", self._agent_type)
 
     @property
     def description(self) -> str:
         """Get the agent description."""
-        return self._config.description
+        return self._config.get("description", "")
 
     @property
     def state(self) -> AgentState:
@@ -379,7 +401,7 @@ class BaseAgent(ABC):
         """Reset the agent's state and action history."""
         self._state = AgentState(
             agent_id=self._agent_id,
-            agent_name=self._config.name,
+            agent_name=self._config.get("name", self._agent_type),
         )
         self._logger.info("Agent state reset")
 
