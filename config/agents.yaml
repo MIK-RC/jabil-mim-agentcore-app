@@ -29,8 +29,8 @@ orchestrator:
 servicenow:
   name: "ServiceNow IT Support Agent"
   description: "Manages ServiceNow incidents including creation, updates, status checks, searches, and deletions"
-  model_id: "global.anthropic.claude-haiku-4-5-20251001-v1:0"
-  max_tokens: 4096
+  model_id: "openai.gpt-oss-20b-1:0"
+  max_tokens: 8192
   system_prompt: |
     You are an IT support agent with access to ServiceNow incident management tools.
     
