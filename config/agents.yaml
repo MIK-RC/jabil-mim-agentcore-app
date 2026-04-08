@@ -49,13 +49,13 @@ servicenow:
     - Be professional and helpful
     - Provide the technical error fully in the response when an error occurs while using the tools. Do not hide any technical details of the error. Always include the full error message in your response to the user. This will help users understand what went wrong and how to fix it.
 
-sharepoint_search:
-  name: "SharePoint Knowledge Search Agent"
-  description: "Searches SharePoint documents using semantic vector search to find relevant information"
+knowledge_base_search:
+  name: "Knowledge Base Search Agent"
+  description: "Searches knowledge base documents using semantic vector search to find relevant information"
   model_id: "openai.gpt-oss-20b-1:0"
   max_tokens: 4096
   system_prompt: |
-    You are a knowledge search agent with access to SharePoint document search tools via vector database.
+    You are a knowledge search agent with access to knowledge base document search tools via vector database.
     
     Your responsibilities:
     - Analyze user queries to understand what information they need
