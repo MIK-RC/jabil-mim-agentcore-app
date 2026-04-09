@@ -5,25 +5,27 @@ from strands import tool
 from opensearchpy import OpenSearch, RequestsHttpConnection, AWSV4SignerAuth
 import os
 from utils.logging_config import get_logger
+from utils.config_loader import get_agent_config
 logger = get_logger(__name__)
 
 class KnowledgeBaseClient:
-    def __init__(self, region='us-east-1', host=None):
+    def __init__(self, region: str = "", host: str = "", embedding_model_id: str = ""):
         """
         Initialize KnowledgeBase/OpenSearch client with AOSS connection
         
         Args:
             region: AWS region for AOSS
             host: OpenSearch endpoint URL
+            embedding_model_id: Bedrock model ID for generating embeddings
         """
         # Setup OpenSearch client
         self.host = os.environ.get("OPENSEARCH_HOST", host)
         service = 'aoss'
         credentials = boto3.Session().get_credentials()
         auth = AWSV4SignerAuth(credentials, region, service)
-        
         self.region = region
         self.auth = auth
+        self.embedding_model_id = embedding_model_id
         
         if self.host:
             self.client = OpenSearch(
@@ -33,9 +35,8 @@ class KnowledgeBaseClient:
                 verify_certs=True,
                 connection_class=RequestsHttpConnection,
             )
-            print(f"Initialized OpenSearch client with host: {self.host}")
         else:
-            print("No OpenSearch host provided. Client not initialized.")
+            logger.warning("No OpenSearch host provided. Client not initialized.")
     
     def get_embedding(self, text_chunk: str) -> List[float]:
         """
@@ -50,7 +51,6 @@ class KnowledgeBaseClient:
         try:
             bedrock = boto3.client("bedrock-runtime", region_name=self.region)
             
-            # Use Cohere Embed v4 with 1024 dimensions
             body = json.dumps({
                 "texts": [text_chunk],
                 "input_type": "search_document",
@@ -61,7 +61,7 @@ class KnowledgeBaseClient:
             
             response = bedrock.invoke_model(
                 body=body,
-                modelId="cohere.embed-v4:0",
+                modelId=self.embedding_model_id,
                 accept="application/json",
                 contentType="application/json"
             )
@@ -94,7 +94,7 @@ class KnowledgeBaseClient:
         self,
         query_text: str,
         index_name: str = "sharepoint-docs",
-        k: int = 25,
+        k: int = 0,
         filters: Optional[Dict[str, str]] = None
     ) -> List[Dict]:
         """
@@ -103,7 +103,7 @@ class KnowledgeBaseClient:
         Args:
             query_text: The search query text
             index_name: Name of the OpenSearch index
-            k: Number of results to return (default: 25)
+            k: Number of results to return (default: 0, will use k-value from config)
             filters: Optional filters e.g., {"source": "filename.pdf", "rule_id": "123"}
         
         Returns:
@@ -118,6 +118,12 @@ class KnowledgeBaseClient:
         try:
             if not hasattr(self, 'client'):
                 raise ValueError("OpenSearch client not initialized. Please provide host in __init__")
+            
+            # Load k-value from config if not provided
+            if k == 0:
+                config = get_agent_config("knowledge_base_search")
+                k = config.get("k-value", 25)
+            
             # Generate embedding for the query text
             print(f"Generating embedding for query: {query_text[:100]}...")
             logger.info(f"Generating embedding for query: {query_text[:100]}...")
@@ -164,7 +170,6 @@ class KnowledgeBaseClient:
                     "source": hit.get("_source", {}).get("source"),
                     "file_id": hit.get("_source", {}).get("file_id"),
                     "rule_id": hit.get("_source", {}).get("rule_id"),
-                    "sha": hit.get("_source", {}).get("sha"),
                     "sharepoint_url": hit.get("_source", {}).get("sharepoint_url"),
                     "modified_datetime": hit.get("_source", {}).get("modified_datetime")
                 })
@@ -184,16 +189,37 @@ def _get_client() -> KnowledgeBaseClient:
     """Get or create the default KnowledgeBase client."""
     global _default_client
     if _default_client is None:
-        _default_client = KnowledgeBaseClient()
+        # Load config to get embedding_model_id
+        config = get_agent_config("knowledge_base_search")
+        embedding_model_id = config.get("embedding_model_id", "")
+        region = config.get("region", "")
+        _default_client = KnowledgeBaseClient(region=region,embedding_model_id=embedding_model_id)
     return _default_client
 
 @tool
 def search_similar_chunks(
     query_text: str,
     index_name: str = "sharepoint-docs",
-    k: int = 25,
+    k: int = 0,
     filters: Optional[Dict[str, str]] = None
 ) -> List[Dict]:
+    """
+    Search knowledge base documents using semantic vector search.
+    
+    Args:
+        query_text: The search query text to find similar documents
+        index_name: Name of the OpenSearch index (default: "sharepoint-docs")
+        k: Number of results to return (default: from config, fallback to 25)
+        filters: Optional filters e.g., {"source": "filename.pdf", "rule_id": "123"}
+    
+    Returns:
+        List of search results with id, score, text, source, and metadata
+    """
+    # Load k-value from config if not provided
+    if k == 0:
+        config = get_agent_config("knowledge_base_search")
+        k = config.get("k-value", 25)
+    
     client = _get_client()
     return client.search_similar_chunks(
         query_text=query_text,

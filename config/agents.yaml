@@ -53,6 +53,9 @@ knowledge_base_search:
   name: "Knowledge Base Search Agent"
   description: "Searches knowledge base documents using semantic vector search to find relevant information"
   model_id: "openai.gpt-oss-20b-1:0"
+  embedding_model_id: "cohere.embed-v4:0"
+  region: "us-east-1"
+  k-value: 25
   max_tokens: 4096
   system_prompt: |
     You are a knowledge search agent with access to knowledge base document search tools via vector database.
