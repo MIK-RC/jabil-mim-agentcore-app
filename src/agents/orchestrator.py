@@ -1,13 +1,17 @@
 from utils.logging_config import get_logger
 from .base import BaseAgent
 from .snow_agent import ServiceNowAgent
-from tools.snow_tools import create_incident, search_incidents, delete_incident
+from .kb_agent import KnowledgeBaseAgent
+from tools.snow_tools import (search_incidents, 
+                            #   create_incident, 
+                              delete_incident)
+from tools.kb_tools import search_similar_chunks
 logger = get_logger(__name__)
 
 class OrchestratorAgent(BaseAgent):
-        def __init__(self, model_id: str | None = None, region: str | None = None):
+        def __init__(self, model_id: str = "", region: str = ""):
             self._servicenow_agent: ServiceNowAgent | None = None
-
+            self._knowledge_base_agent: KnowledgeBaseAgent | None = None
             self._agent_reports: list[dict] = []
 
             super().__init__(
@@ -17,7 +21,9 @@ class OrchestratorAgent(BaseAgent):
             )
 
         def get_tools(self) -> list:
-            return [create_incident, search_incidents, delete_incident]
+            return [search_incidents, 
+                    # create_incident, 
+                    delete_incident, search_similar_chunks]
         
         @property
         def snow_agent(self) -> ServiceNowAgent:
@@ -25,6 +31,16 @@ class OrchestratorAgent(BaseAgent):
                 logger.info("Initializing ServiceNow agent within Orchestrator")
                 self._servicenow_agent = ServiceNowAgent(model_id=self.model_id, region=self.region)
             return self._servicenow_agent
+        
+        @property
+        def knowledge_base_agent(self) -> KnowledgeBaseAgent:
+            if self._knowledge_base_agent is None:
+                logger.info("Initializing Knowledge Base agent within Orchestrator")
+                self._knowledge_base_agent = KnowledgeBaseAgent(
+                    model_id=self.model_id,
+                    region=self.region
+                )
+            return self._knowledge_base_agent
         
         def get_actions(self) -> list[dict]:
             actions_list = []
@@ -42,6 +58,15 @@ class OrchestratorAgent(BaseAgent):
                     actions_list.append(
                         {
                             "agent": "ServiceNow",
+                            **action.model_dump(),
+                        }
+                    )
+            
+            if self._knowledge_base_agent:
+                for action in self._knowledge_base_agent.action_history:
+                    actions_list.append(
+                        {
+                            "agent": "KnowledgeBase",
                             **action.model_dump(),
                         }
                     )

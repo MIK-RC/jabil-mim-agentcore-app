@@ -7,6 +7,11 @@ aws:
   # Bedrock endpoint (optional, uses default if not specified)
   bedrock_endpoint: null
 
+opensearch:
+  # OpenSearch Serverless endpoint (without https://)
+  host: null  # Set via environment variable OPENSEARCH_HOST or update here
+  index_name: "sharepoint-docs"
+
 logging:
   level: "INFO"
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

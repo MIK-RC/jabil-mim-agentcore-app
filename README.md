@@ -117,3 +117,18 @@ Each agent maintains state via `AgentState`:
 - **Action tracking**: Full audit trail of all agent invocations
 - **Logging**: Structured logs with agent ID for traceability
 - **Tool isolation**: Each agent only has access to its specific tools
+
+### Knowledge Base Agent
+- Knowledge Base agent gets query as a keyword
+- Foundation Model creates an embedding of 1024 dimensions
+- Searches the Amazon OpenSearch Serverless with the embedding
+- Retrieves data from the vector database and returns
+
+### NOTE
+
+- **Create Incident tool is deactivated**: Out of scope.
+
+### TODO
+
+- **ServiceNow Query**: Similar incidents (last 3 months) - Related changes (last 48 hours)
+

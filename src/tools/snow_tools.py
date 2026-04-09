@@ -11,11 +11,11 @@ logger = get_logger("snow_tools")
 
 class ServiceNowClient:
 
-    def __init__(self, instance: str | None = None, username: str | None = None, password: str | None = None):
+    def __init__(self, instance: str = "", username: str = "", password: str = ""):
 
         self._config = {}
 
-        self._instance = instance or os.environ.get("SERVICENOW_INSTANCE")
+        self._instance = instance or os.environ.get("SERVICENOW_INSTANCE","")
         self._username = username or os.environ.get("SERVICENOW_USER", "")
         self._password = password or os.environ.get("SERVICENOW_PASS", "")
 
